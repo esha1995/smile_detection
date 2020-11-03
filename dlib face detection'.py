@@ -3,7 +3,6 @@ import dlib
 import matplotlib.pyplot as plt
 import numpy as np
 from imutils import face_utils
-hej = "lol"
 smile_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_smile.xml')
 detector = dlib.get_frontal_face_detector()
 sp = dlib.shape_predictor('dlib files/shape_predictor_5_face_landmarks.dat')
