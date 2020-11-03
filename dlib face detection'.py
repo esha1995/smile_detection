@@ -3,7 +3,7 @@ import dlib
 import matplotlib.pyplot as plt
 import numpy as np
 from imutils import face_utils
-
+hej = "lol"
 smile_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_smile.xml')
 detector = dlib.get_frontal_face_detector()
 sp = dlib.shape_predictor('dlib files/shape_predictor_5_face_landmarks.dat')
@@ -23,22 +23,16 @@ def detect(gray, frame):
         shape = sp(gray, faces)
         shape = face_utils.shape_to_np(shape)
         (x, y, w, h) = face_utils.rect_to_bb(faces)
-
         roi_gray = gray[y:y + h, x:x + w]
         roi_color = frame[y:y + h, x:x + w]
-
         cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 0), 2)
-
         for (x, y) in shape:
             cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
-
         smiles = smile_cascade.detectMultiScale(roi_gray, 1.4, 15)
-
         if len(smiles) > 0:
             smileCounter.append(1)
         else:
             smileCounter.append(0)
-
         for (sx, sy, sw, sh) in smiles:
             cv2.rectangle(roi_color, (sx, sy), ((sx + sw), (sy + sh)), (0, 0, 255), 2)
 
