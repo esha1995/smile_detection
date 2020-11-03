@@ -38,10 +38,15 @@ def detect(gray, frame):
 
     return frame
 
-
-framerate = int(input("framerate of camera: "))
-webcam = int(input("enter camera input: "))
+while True:
+    try:
+        webcam = int(input("enter camera input: "))
+        framerate = int(input("framerate of camera: "))
+        break
+    except:
+        print("only numbers")
 cap = cv2.VideoCapture(webcam)
+
 
 while True:
     _, frame = cap.read()
