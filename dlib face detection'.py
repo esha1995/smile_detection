@@ -12,19 +12,21 @@ smileCounter = list()
 lookAwayCounter = list()
 framerate = 24
 
+
 def detect(gray, frame):
     faces = detector(gray, 1)
     if len(faces) < 1:
         lookAwayCounter.append(1)
     else:
         lookAwayCounter.append(0)
-
     for (i, faces) in enumerate(faces):
         shape = sp(gray, faces)
         shape = face_utils.shape_to_np(shape)
         (x, y, w, h) = face_utils.rect_to_bb(faces)
+
         roi_gray = gray[y:y + h, x:x + w]
         roi_color = frame[y:y + h, x:x + w]
+
         cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 0), 2)
 
         for (x, y) in shape:
@@ -37,13 +39,13 @@ def detect(gray, frame):
         else:
             smileCounter.append(0)
 
-        for (sx,sy,sw,sh) in smiles:
+        for (sx, sy, sw, sh) in smiles:
             cv2.rectangle(roi_color, (sx, sy), ((sx + sw), (sy + sh)), (0, 0, 255), 2)
 
     return frame
 
+
 webcam = int(input("enter camera input: "))
-print(webcam)
 cap = cv2.VideoCapture(webcam)
 
 while True:
@@ -71,14 +73,6 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
-
-plt.plot(smileCounter, color='red', label='smiles')
-plt.plot(lookAwayCounter, color='blue', label='looking away')
-plt.yticks(np.arange(0, 2, 1))
-plt.xticks(np.arange(0, 100, framerate))
-plt.legend()
-plt.show()
-
 
 smileChanges = np.where(np.roll(smileCounter, 1) != smileCounter)[0]
 lookAwayChanges = np.where(np.roll(lookAwayCounter, 1) != lookAwayCounter)[0]
@@ -110,3 +104,11 @@ for index in range(len(lookAwayChanges[1::2])):
         print("person looked away at: " + str(
             lookAwayChanges[index + 1] / framerate) + " seconds, and lasted for: " + str(
             (lookAwayChanges[index + 2] - lookAwayChanges[index + 1]) / framerate) + " seconds.")
+
+
+plt.plot(smileCounter, color='red', label='smiles')
+plt.plot(lookAwayCounter, color='blue', label='looking away')
+plt.yticks(np.arange(0, 2, 1))
+plt.xticks(np.arange(0, 100, framerate))
+plt.legend()
+plt.show()
