@@ -3,13 +3,14 @@ import dlib
 import matplotlib.pyplot as plt
 import numpy as np
 from imutils import face_utils
+
 smile_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_smile.xml')
 detector = dlib.get_frontal_face_detector()
 sp = dlib.shape_predictor('dlib files/shape_predictor_5_face_landmarks.dat')
 model = dlib.face_recognition_model_v1('dlib files/dlib_face_recognition_resnet_model_v1.dat')
 smileCounter = list()
 lookAwayCounter = list()
-framerate = 24
+framerate = 0
 
 
 def detect(gray, frame):
@@ -38,6 +39,7 @@ def detect(gray, frame):
     return frame
 
 
+framerate = int(input("framerate of camera: "))
 webcam = int(input("enter camera input: "))
 cap = cv2.VideoCapture(webcam)
 
@@ -97,7 +99,6 @@ for index in range(len(lookAwayChanges[1::2])):
         print("person looked away at: " + str(
             lookAwayChanges[index + 1] / framerate) + " seconds, and lasted for: " + str(
             (lookAwayChanges[index + 2] - lookAwayChanges[index + 1]) / framerate) + " seconds.")
-
 
 plt.plot(smileCounter, color='red', label='smiles')
 plt.plot(lookAwayCounter, color='blue', label='looking away')
