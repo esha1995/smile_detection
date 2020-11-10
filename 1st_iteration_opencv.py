@@ -1,21 +1,12 @@
 import cv2
-import dlib
-import matplotlib.pyplot as plt
 import numpy as np
-from imutils import face_utils
 
 smile_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_smile.xml')
 face_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_frontalface_default.xml')
-smileCounter = list()
-lookAwayCounter = list()
 
 def detect(gray, frame):
     faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(50,50))
     print("faces: " + str(len(faces)))
-    if len(faces) < 1:
-        lookAwayCounter.append(1)
-    else:
-        lookAwayCounter.append(0)
     for (x, y, w, h) in faces:
         cv2.rectangle(frame, (x, y), ((x + w), (y + h)), (255, 0, 0), 2)
         roi_gray = gray[y:y + h, x:x + w]
@@ -24,10 +15,6 @@ def detect(gray, frame):
         print("smiles: " + str(len(smiles)))
         for (sx, sy, sw, sh) in smiles:
             cv2.rectangle(roi_color, (sx, sy), ((sx + sw), (sy + sh)), (0, 0, 255), 2)
-        if len(smiles) > 0:
-            smileCounter.append(1)
-        else:
-            smileCounter.append(0)
     return frame
 
 imagePath = 'images/smile'
