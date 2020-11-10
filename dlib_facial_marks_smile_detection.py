@@ -42,10 +42,13 @@ def detect(gray, frame):
         mouthHull = cv2.convexHull(mouth)
         cv2.drawContours(frame, [mouthHull], -1, (0, 255, 0), 1)
 
-        if mar <= .24 or mar > .32:
+        if mar <= .23 or mar >= .32 and mar < .47:
             cv2.putText(frame, 'smile detected', (x, y), cv2.FONT_HERSHEY_SIMPLEX,
                         1, (0, 0, 0), 2, cv2.LINE_AA)
             smileCounter.append(1)
+        elif mar > .47:
+            cv2.putText(frame, 'suprised', (x, y), cv2.FONT_HERSHEY_SIMPLEX,
+                        1, (0, 0, 0), 2, cv2.LINE_AA)
         else:
             smileCounter.append(0)
         cv2.putText(frame, "MAR: {}".format(mar), (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
@@ -75,21 +78,9 @@ while True:
 
 while True:
     _, frame = cap.read()
-    #frame = cv2.resize(frame, (700, 512))
-    #scale_percent = 50 # percent of original size
-    #width = int(frame.shape[1] * scale_percent / 100)
-    #height = int(frame.shape[0] * scale_percent / 100)
-    #dim = (width, height)
-    #resize image
-    #frame = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
-    # frame = cv2.flip(frame, 1)
     frame = imutils.resize(frame, width=600)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    #gray = cv2.equalizeHist(gray)
-
     canvas = detect(gray, frame)
-    #cv2.putText(canvas, 'Press q to stop', (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
-    #            1, (0, 0, 0), 2, cv2.LINE_AA)
     cv2.imshow('Video', canvas)
     if cv2.waitKey(1) & 0xff == ord('q'):
         break
