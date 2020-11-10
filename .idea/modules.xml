@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/dlib face_detection.iml" filepath="$PROJECT_DIR$/dlib face_detection.iml" />
+      <module fileurl="file://$PROJECT_DIR$/smile_detection_1st_iteration.iml" filepath="$PROJECT_DIR$/smile_detection_1st_iteration.iml" />
     </modules>
   </component>
 </project>
