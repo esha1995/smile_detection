@@ -1,4 +1,4 @@
-
+import imutils
 from scipy.spatial import distance as dist
 import cv2
 import dlib
@@ -6,26 +6,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 from imutils import face_utils
 
-smile_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_smile.xml')
 detector = dlib.get_frontal_face_detector()
 sp = dlib.shape_predictor('dlib files/shape_predictor_68_face_landmarks.dat')
-model = dlib.face_recognition_model_v1('dlib files/dlib_face_recognition_resnet_model_v1.dat')
 (mStart, mEnd) = face_utils.FACIAL_LANDMARKS_IDXS["mouth"]
 smileCounter = list()
 lookAwayCounter = list()
 framerate = 0
 
+
 def smile(mouth):
     A = dist.euclidean(mouth[3], mouth[9])
     B = dist.euclidean(mouth[2], mouth[10])
     C = dist.euclidean(mouth[4], mouth[8])
-    L = (A+B+C)/3
+    L = (A + B + C) / 3
     D = dist.euclidean(mouth[0], mouth[6])
-    mar=L/D
+    mar = L / D
     return mar
 
+
 def detect(gray, frame):
-    faces = detector(gray, 1)
+    faces = detector(gray, 0)
     if len(faces) < 1:
         lookAwayCounter.append(1)
     else:
@@ -37,18 +37,19 @@ def detect(gray, frame):
         cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 0), 2)
         for (x, y) in shape:
             cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
-        mouth=shape[mStart:mEnd]
-        mar=smile(mouth)
+        mouth = shape[mStart:mEnd]
+        mar = smile(mouth)
         mouthHull = cv2.convexHull(mouth)
         cv2.drawContours(frame, [mouthHull], -1, (0, 255, 0), 1)
-        if mar <= .35 or mar > .40:
-            cv2.putText(frame, 'no smile', (x, y), cv2.FONT_HERSHEY_SIMPLEX,
-                        1, (0, 0, 0), 2, cv2.LINE_AA)
-            smileCounter.append(0)
-        else:
+
+        if mar <= .24 or mar > .32:
             cv2.putText(frame, 'smile detected', (x, y), cv2.FONT_HERSHEY_SIMPLEX,
                         1, (0, 0, 0), 2, cv2.LINE_AA)
             smileCounter.append(1)
+        else:
+            smileCounter.append(0)
+        cv2.putText(frame, "MAR: {}".format(mar), (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                    1, (0, 0, 0), 2, cv2.LINE_AA)
     return frame
 
 
@@ -64,7 +65,7 @@ cap = cv2.VideoCapture(webcam)
 
 while True:
     _, frame = cap.read()
-    frame = cv2.resize(frame, (700, 512))
+    #frame = cv2.resize(frame, (700, 512))
     frame = cv2.flip(frame, 1)
     cv2.putText(frame, 'Press p to start', (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
                 1, (0, 0, 0), 2, cv2.LINE_AA)
@@ -74,13 +75,21 @@ while True:
 
 while True:
     _, frame = cap.read()
-    frame = cv2.resize(frame, (700, 512))
-    frame = cv2.flip(frame, 1)
+    #frame = cv2.resize(frame, (700, 512))
+    #scale_percent = 50 # percent of original size
+    #width = int(frame.shape[1] * scale_percent / 100)
+    #height = int(frame.shape[0] * scale_percent / 100)
+    #dim = (width, height)
+    #resize image
+    #frame = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+    # frame = cv2.flip(frame, 1)
+    frame = imutils.resize(frame, width=600)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    gray = cv2.equalizeHist(gray)
+    #gray = cv2.equalizeHist(gray)
+
     canvas = detect(gray, frame)
-    cv2.putText(canvas, 'Press q to stop', (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
-                1, (0, 0, 0), 2, cv2.LINE_AA)
+    #cv2.putText(canvas, 'Press q to stop', (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
+    #            1, (0, 0, 0), 2, cv2.LINE_AA)
     cv2.imshow('Video', canvas)
     if cv2.waitKey(1) & 0xff == ord('q'):
         break
@@ -126,5 +135,4 @@ plt.yticks(np.arange(0, 2, 1))
 plt.xticks(np.arange(0, 100, framerate))
 plt.legend()
 plt.show()
-
 
