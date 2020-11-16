@@ -50,9 +50,9 @@ def main():
         [sg.Button("Exit", size=(10,1))],
         [
             sg.Slider(
-                (101, 200),
-                101,
-                1,
+                (110, 200),
+                110,
+                5,
                 orientation="h",
                 size=(40, 15),
                 key="-SCALE-",
