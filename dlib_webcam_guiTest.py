@@ -55,6 +55,7 @@ def main():
                 5,
                 orientation="h",
                 size=(40, 15),
+                text="SCALE",
                 key="-SCALE-",
             ),
         ],
