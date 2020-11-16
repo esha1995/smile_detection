@@ -1,9 +1,7 @@
 import cv2
 import numpy as np
-
 smile_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_smile.xml')
 face_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_frontalface_default.xml')
-
 def detect(gray, frame):
     faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(50,50))
     print("faces: " + str(len(faces)))
@@ -20,7 +18,7 @@ def detect(gray, frame):
 imagePath = 'images/smile'
 writePath = 'openCV_imagewrite'
 
-for i in range(24):
+for i in range(15):
     print("image number: " + str(i) + ": ")
     cap = cv2.imread(imagePath+str(i)+'.jpg')
     frame = cv2.resize(cap, (700, 512))
@@ -29,4 +27,3 @@ for i in range(24):
     canvas = detect(gray, frame)
     filename = 'smileDetected' + str(i) + '.jpg'
     cv2.imwrite(np.os.path.join(writePath, filename), canvas)
-

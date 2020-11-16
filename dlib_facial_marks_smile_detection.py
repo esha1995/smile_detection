@@ -126,4 +126,3 @@ plt.yticks(np.arange(0, 2, 1))
 plt.xticks(np.arange(0, 100, framerate))
 plt.legend()
 plt.show()
-
