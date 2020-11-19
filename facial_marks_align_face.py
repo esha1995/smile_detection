@@ -52,11 +52,14 @@ def detect(frame):
                         1, (0, 0, 0), 2, cv2.LINE_AA)
     return frame
 
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(0)
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out = cv2.VideoWriter('output.avi', fourcc, 20.0, (640, 480))
 
 
 while True:
-    _, frame = cap.read()
+    ret, frame = cap.read()
+    out.write(frame)
     frame = imutils.resize(frame, width=600)
     canvas = detect(frame)
     cv2.imshow('Video', canvas)
@@ -64,8 +67,9 @@ while True:
         break
 
 cap.release()
+out.release()
 cv2.destroyAllWindows()
-cv2.destroyAllWindows()
+
 
 
 """""

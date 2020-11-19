@@ -1,10 +1,8 @@
 import cv2
+from threading import Thread
 import dlib
 import imutils
-import numpy as np
-from imutils import face_utils
-from matplotlib.image import imread
-
+from multiprocessing import Process
 
 smile_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_smile.xml')
 detector = dlib.get_frontal_face_detector()
@@ -57,18 +55,43 @@ for i in range(35):
 
 
 """
-cap = cv2.VideoCapture(2)
+def show_video():
+    cap = cv2.VideoCapture(0)
+    while True:
+        ret, frame = cap.read()
+        frame = imutils.resize(frame, width=400)
+        canvas = detect(frame)
+        cv2.imshow('Video', canvas)
+        if cv2.waitKey(1) & 0xff == ord('q'):
+            break
+    cap.release()
+    cv2.destroyAllWindows()
 
-while True:
-    _, frame = cap.read()
-    frame = imutils.resize(frame, width=400)
-    canvas = detect(frame)
-    cv2.imshow('Video', canvas)
-    if cv2.waitKey(1) & 0xff == ord('q'):
-        break
 
-cap.release()
-cv2.destroyAllWindows()
+def write_video():
+    cap2 = cv2.VideoCapture(0)
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    fps = float(cap2.get(cv2.CAP_PROP_FPS))
+    out = cv2.VideoWriter('output.avi', fourcc, fps, (640, 480))
+    while True:
+        ret, test = cap2.read()
+        test = imutils.resize(test, width=400)
+        out.write(test)
+        cv2.imshow('Test', test)
+        if cv2.waitKey(1) & 0xff == ord('q'):
+            break
+    cap2.release()
+    out.release()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    p1= Process(target = show_video)
+    p2= Process(target = write_video)
+    p1.start()
+    p2.start()
+
+    p1.join()
+    p2.join()
 
 
 #"""
