@@ -2,8 +2,9 @@ import cv2
 import numpy as np
 smile_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_smile.xml')
 face_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_frontalface_default.xml')
+
 def detect(gray, frame):
-    faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(50,50))
+    faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(50 , 50))
     print("faces: " + str(len(faces)))
     for (x, y, w, h) in faces:
         cv2.rectangle(frame, (x, y), ((x + w), (y + h)), (255, 0, 0), 2)
