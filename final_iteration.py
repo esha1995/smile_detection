@@ -11,6 +11,7 @@ from scipy.spatial import distance as dist
 import time
 import PySimpleGUI as sg
 import vlc
+from sys import platform as PLATFORM
 
 
 # loading the dlib face detector
@@ -27,7 +28,81 @@ counter = 0
 smile = False
 face = False
 frame = cv2.imread('images/neutral0.jpg')
+videoPlaying = True
 
+def mediaplayer():
+    global videoPlaying
+    sg.theme('DarkBlue')
+
+    def btn(name):  # a PySimpleGUI "User Defined Element" (see docs)
+        return sg.Button(name, size=(6, 1), pad=(1, 1))
+
+    layout = [
+        [sg.Input(default_text='Video URL or Local Path:', size=(30, 1), key='-VIDEO_LOCATION-'), sg.Button('load')],
+        [sg.Image('', size=(1024, 576), key='-VID_OUT-')],
+        [btn('previous'), btn('play'), btn('next'), btn('pause'), btn('stop')],
+        [sg.Text('Load media to start', key='-MESSAGE_AREA-')]]
+
+    window = sg.Window('Mini Player', layout, element_justification='center', finalize=True, resizable=True)
+
+    window['-VID_OUT-'].expand(True, True)  # type: sg.Element
+    # ------------ Media Player Setup ---------#
+
+    inst = vlc.Instance()
+    list_player = inst.media_list_player_new()
+    media_list = inst.media_list_new([])
+    list_player.set_media_list(media_list)
+    player = list_player.get_media_player()
+    if PLATFORM.startswith('linux'):
+        player.set_xwindow(window['-VID_OUT-'].Widget.winfo_id())
+    else:
+        player.set_hwnd(window['-VID_OUT-'].Widget.winfo_id())
+
+    test = True
+    # ------------ The Event Loop ------------#
+    while True:
+        event, values = window.read(timeout=1000)  # run with a timeout so that current location can be updated
+        if test:
+            media_list.add_media("test.mp4")
+            list_player.set_media_list(media_list)
+            list_player.play()
+            test = False
+        if videoPlaying == False:
+            break
+
+        if event == sg.WIN_CLOSED:
+            break
+        if event == 'play':
+            list_player.play()
+        if event == 'pause':
+            list_player.pause()
+        if event == 'stop':
+            list_player.stop()
+        if event == 'next':
+            list_player.next()
+            list_player.play()
+        if event == 'previous':
+            list_player.previous()  # first call causes current video to start over
+            list_player.previous()  # second call moves back 1 video from current
+            list_player.play()
+        if event == 'load':
+            if values['-VIDEO_LOCATION-'] and not 'Video URL' in values['-VIDEO_LOCATION-']:
+                media_list.add_media(values['-VIDEO_LOCATION-'])
+                list_player.set_media_list(media_list)
+                window['-VIDEO_LOCATION-'].update('Video URL or Local Path:')  # only add a legit submit
+
+        # update elapsed time if there is a video loaded and the player is playing
+        if player.is_playing():
+            checkerThread.start()
+            videoPlaying = True
+            window['-MESSAGE_AREA-'].update(
+                "{:02d}:{:02d} / {:02d}:{:02d}".format(*divmod(player.get_time() // 1000, 60),
+                                                       *divmod(player.get_length() // 1000, 60)))
+        else:
+            videoPlaying = False
+            window['-MESSAGE_AREA-'].update('Load media to start' if media_list.count() == 0 else 'Ready to play media')
+
+    window.close()
 
 # resizes image with width of 600
 def resize(frame):
@@ -112,10 +187,12 @@ def checker():
     timeNow = time.time()
     stamp = 0.5
     while True:
+        if videoPlaying == False:
+            break;
         timeis = time.time()-timeNow
         textOnImage(frame, textSmile, 50,50)
         textOnImage(frame, textFace, 50,80)
-        if stamp+0.1 > timeis > stamp-0.05:
+        if stamp+0.2 > timeis > stamp-0.07:
             print(stamp)
             print(timeis)
             stamp += 0.5
@@ -131,7 +208,7 @@ def checker():
 
 
 
-
+mediaThread = threading.Thread(target=mediaplayer)
 checkerThread = threading.Thread(target=checker)
 
 while True:
@@ -141,14 +218,18 @@ while True:
     except:
         print("only numbers")
 
-cap = cv2.VideoCapture(webcam)
+cap = cv2.VideoCapture(webcam, cv2.CAP_DSHOW)
 
-checkerThread.start()
+
+mediaThread.start()
+
 
 while True:
     ret, frame = cap.read()
     counter += 1
     if ret:
+        if videoPlaying == False:
+            break
         frame = resize(frame)
         rgb_frame = frame[:, :, ::-1]
         gray = preproc(frame)
@@ -156,7 +237,7 @@ while True:
             counter = 0
             faces = detector(rgb_frame, 1)
             frame = detect(gray, frame, faces)
-        cv2.imshow('Video', frame)
+        #cv2.imshow('Video', frame)
         cv2.waitKey(1)
     else:
         break
