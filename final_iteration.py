@@ -9,6 +9,9 @@ import xlsxwriter
 from imutils import face_utils
 from scipy.spatial import distance as dist
 import time
+import PySimpleGUI as sg
+import vlc
+
 
 # loading the dlib face detector
 detector = dlib.get_frontal_face_detector()
@@ -101,20 +104,32 @@ def detect(gray, frame, faces):
 
 def checker():
     print('checker thread has started')
-    timeNow = time.time()
     global frame
     global smile
     global face
-    textis = ""
+    textSmile = ""
+    textFace = ""
+    timeNow = time.time()
+    stamp = 0.5
     while True:
+        timeis = time.time()-timeNow
+        textOnImage(frame, textSmile, 50,50)
+        textOnImage(frame, textFace, 50,80)
+        if stamp+0.1 > timeis > stamp-0.05:
+            print(stamp)
+            print(timeis)
+            stamp += 0.5
+            if face:
+                textFace = 'face detected'
+                if smile:
+                    textSmile = 'smile detected'
+                else:
+                    textSmile = 'no smile detected'
+            else:
+                textFace = 'no face detected'
+                textSmile = 'no smile detected'
 
-        timeNow=time.time()
-        textOnImage(frame, textis, 50,50)
-        if smile:
-            textis = 'smile detected'
-        else:
-            textis = 'no smile detected'
-        print(time.time()-timeNow)
+
 
 
 checkerThread = threading.Thread(target=checker)
@@ -129,6 +144,7 @@ while True:
 cap = cv2.VideoCapture(webcam)
 
 checkerThread.start()
+
 while True:
     ret, frame = cap.read()
     counter += 1
