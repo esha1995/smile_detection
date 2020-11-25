@@ -58,14 +58,14 @@ def getMar(faces, gray):
         mar = distance(mouth)
     return mar
 
-# returns the mar value of smile without teeth (20% lower than neutral)
+# returns the mar value of smile without teeth calculated
 def smileNoTeeth(neutral):
-    smileNoTeeth = neutral * 0.80
+    smileNoTeeth = neutral * 0.8
     return smileNoTeeth
 
-# returns the mar value of smile without teeth (20% higher than neutral)
+# returns the mar value of smile without teeth
 def smileTeeth(neutral):
-    smileTeeth = neutral * 1.14
+    smileTeeth = neutral * 1.2
     return smileTeeth
 
 # function that saves image with timestamp
@@ -87,20 +87,26 @@ def detect(gray, frame, faces, i):
     else:
         textOnImage(frame, 'face detected', 50, 100)
         faceCounter[i].append(1)
-    if getMar(faces, gray) <= smileNoTeeth(neutral) or getMar(faces, gray) >= smileTeeth(neutral):
+    mar = getMar(faces, gray)
+    print(mar)
+    if mar <= smileNoTeeth(neutral) or mar >= smileTeeth(neutral):
         textOnImage(frame, 'smile detected', 50, 50)
-        smileCounter[i].append(0)
+        smileCounter[i].append(1)
     else:
         textOnImage(frame, 'no smile detected', 50, 50)
-        smileCounter[i].append(1)
+        smileCounter[i].append(0)
     return frame
 
 # number of tests
-numberOfTests = 3
+numberOfTests = 5
+
+participant = 'participant6'
 
 # lists
 smileCounter = list()
 faceCounter = list()
+secondCounter = list()
+
 
 # for loop going through code for every test
 for i in range(numberOfTests):
@@ -110,13 +116,14 @@ for i in range(numberOfTests):
     # creating a list in a list
     smileCounter.append([])
     faceCounter.append([])
+    secondCounter.append([])
 
     # creating a new xml-document
-    workbook = xlsxwriter.Workbook('xml files/2nd_iteration_landmarks_video' + str(i) + '.xlsx')
+    workbook = xlsxwriter.Workbook('xml files/'+participant+'clip'+str(i+1)+'facial_landmarks_clip.xlsx')
     worksheet = workbook.add_worksheet()
 
     # loading picture of neutral face and calculating mar values
-    neutralIMG = cv2.imread('images/neutral' + str(i) + '.jpg')
+    neutralIMG = cv2.imread('images/neutral5.png')
     neutralIMG = preproc(neutralIMG)
     neutral = getMar(detector(neutralIMG, 1), neutralIMG)
     print("neutral mar value: " + str(neutral) + ", mar value for smile with teeth:"
@@ -125,9 +132,9 @@ for i in range(numberOfTests):
 
     # loading video clip and calculating frames pr. second of clip
     cap = cv2.VideoCapture('video/clip' + str(i) + '.mov')
-    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    fps = cap.get(cv2.CAP_PROP_FPS)
     print("fps is: " + str(fps))
-
+    counter = 0
     # going through every frame of video, if one second has passed the detect function is called and an image is saved
     while True:
         ret, frame = cap.read()
@@ -136,8 +143,9 @@ for i in range(numberOfTests):
             frame = resize(frame)
             rgb_frame = frame[:, :, ::-1]
             gray = preproc(frame)
-            if counter == fps:
+            if counter == 10:
                 counter = 0
+                secondCounter[i].append(float(cap.get(cv2.CAP_PROP_POS_MSEC)/1000))
                 faces = detector(rgb_frame, 1)
                 frame = detect(gray, frame, faces, i)
                 saveImage(frame, i)
@@ -154,7 +162,7 @@ for i in range(numberOfTests):
     smileChanges = np.where(np.roll(smileCounter[i], 1) != smileCounter[i])[0]
     lookAwayChanges = np.where(np.roll(faceCounter[i], 1) != faceCounter[i])[0]
 
-    # calculating number of smiles (which should bed half the times a change has accured)
+    # calculating number of smiles (which should bed half the times a change has occured)
     howManySmiles = int(len(smileChanges) / 2)
     howManyLookAway = int(len(lookAwayChanges) / 2)
 
@@ -163,12 +171,12 @@ for i in range(numberOfTests):
     worksheet.write('B1', 'Smile:')
     worksheet.write('C1', 'Face:')
     worksheet.write('D1', 'smilecount: ')
-    worksheet.write('D2', str(howManySmiles))
+    worksheet.write('D2', howManySmiles)
     worksheet.write('E1', 'lookawaycount: ')
-    worksheet.write('E2', str(howManyLookAway))
+    worksheet.write('E2', howManyLookAway)
 
     for j in range(len(smileCounter[i])):
-        worksheet.write('A' + str(j + 2), (j + 1))
+        worksheet.write('A' + str(j + 2), secondCounter[i][j])
         worksheet.write('B' + str(j + 2), smileCounter[i][j])
         worksheet.write('C' + str(j + 2), faceCounter[i][j])
     workbook.close()
