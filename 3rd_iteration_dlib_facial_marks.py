@@ -159,6 +159,11 @@ def eyeSmile(neutralL,neutralR):
     eyeSmile = eyeSmile * 0.9
     return eyeSmile
 
+def eyeMouth(neutralL, neutralR):
+    eyeMouth = (neutralL + neutralR)/2
+    eyeMouth = eyeMouth * 0.9
+    return eyeMouth
+
 # function that saves image with timestamp
 def saveImage(frame, test):
     global imageNumber
@@ -243,13 +248,18 @@ while True:
             eyeChangeL = eyeLeftN * procentChange
             eyeChangeR = eyeRightN * procentChange
             eyeChange = (eyeRight + eyeLeft) / 2
-            if eyeChange < eyeSmile(eyeChangeL,eyeChangeR):
-                print('smile')
-            textOnImage(frame, str(procentChange), 50, 350)
-            textOnImage(frame, str(toRight),50,50)
-            textOnImage(frame, str(toLeft), 50,100)
-            textOnImage(frame, str(eyeRight), 50, 150)
-            textOnImage(frame, str(eyeLeft), 50, 200)
+            eyeMouthChangeL = toLeftN * procentChange
+            eyeMouthChangeR = toRightN * procentChange
+            eyeMouthChange = (toRight + toLeft) / 2
+            if eyeChange < eyeSmile(eyeChangeL,eyeChangeR) and eyeMouthChange < eyeMouth(eyeMouthChangeL, eyeMouthChangeR):
+                textOnImage(frame, 'smile detected', 50,50)
+            else:
+                textOnImage(frame, 'no smile detected', 50,50)
+            #textOnImage(frame, str(procentChange), 50, 350)
+            #textOnImage(frame, str(toRight),50,50)
+            #textOnImage(frame, str(toLeft), 50,100)
+            #textOnImage(frame, str(eyeRight), 50, 150)
+            #textOnImage(frame, str(eyeLeft), 50, 200)
         cv2.imshow('Video', frame)
         cv2.waitKey(1)
     else:
