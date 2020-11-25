@@ -5,6 +5,7 @@ import numpy as np
 import PySimpleGUI as sg
 from imutils import face_utils
 import vlc
+import threading
 
 smile_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_smile.xml')
 detector = dlib.get_frontal_face_detector()
@@ -14,6 +15,7 @@ model = dlib.face_recognition_model_v1('dlib files/dlib_face_recognition_resnet_
 smileCounter = list()
 lookAwayCounter = list()
 framerate = 0
+
 
 def btn(name):  # a PySimpleGUI "User Defined Element" (see docs)
     return sg.Button(name, size=(6, 1), pad=(1, 1))
@@ -236,5 +238,7 @@ def main():
                 lookAwayChanges[index + 1] / framerate) + " seconds, and lasted for: " + str(
                 (lookAwayChanges[index + 2] - lookAwayChanges[index + 1]) / framerate) + " seconds.")
     window.close()
-main()
+
+videoThread = threading.Thread(target=main())
+videoThread.start()
 

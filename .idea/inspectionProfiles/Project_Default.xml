@@ -14,6 +14,7 @@
           <option value="dlib_facial_marks_smile_detection.frameCounter" />
           <option value="dlib_facial_marks_smile_detection.countFrame" />
           <option value="dlib_facial_marks_smile_detection.counter" />
+          <option value="vlc" />
         </list>
       </option>
     </inspection_tool>
