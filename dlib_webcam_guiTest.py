@@ -5,6 +5,7 @@ import numpy as np
 import PySimpleGUI as sg
 from imutils import face_utils
 import vlc
+import threading
 
 smile_cascade = cv2.CascadeClassifier('OpenCV files/haarcascade_smile.xml')
 detector = dlib.get_frontal_face_detector()
@@ -14,6 +15,7 @@ model = dlib.face_recognition_model_v1('dlib files/dlib_face_recognition_resnet_
 smileCounter = list()
 lookAwayCounter = list()
 framerate = 0
+
 
 def btn(name):  # a PySimpleGUI "User Defined Element" (see docs)
     return sg.Button(name, size=(6, 1), pad=(1, 1))
@@ -81,7 +83,7 @@ def main():
                 key="-SCALE-",
             ),
         ],
-        [sg.Text("Neighbour", size=(60, 1), justification="left")],
+        [sg.Text("Neighbor", size=(60, 1), justification="left")],
         [
             sg.Slider(
                 (10, 20),
@@ -98,7 +100,7 @@ def main():
     while True:
         try:
             webcam = int(input("enter camera input: "))
-            #framerate = int(input("framerate of camera: "))
+            framerate = int(input("framerate of camera: "))
             break
         except:
             print("only numbers")
@@ -112,13 +114,9 @@ def main():
     player = list_player.get_media_player()
     player.set_hwnd(window['-IMAGE-'].Widget.winfo_id())
     cap = cv2.VideoCapture(webcam)
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    fps = float(cap.get(cv2.CAP_PROP_FPS))
-
-    framespassed = 0
-    out = cv2.VideoWriter('output.avi', fourcc, fps, (640, 480))
-
     calibrateBool = False
+    videoLoaded = False
+    videoPlaying = False
     while True:
         event, values = window.read(timeout=20)
         if event == "Exit" or sg.WINDOW_CLOSED:
@@ -128,8 +126,6 @@ def main():
             plt.xticks(np.arange(0, 100, framerate))
             plt.legend()
             plt.show()
-            window.close()
-
             break
         elif event == "Start cal":
             calibrateBool = True
@@ -145,6 +141,8 @@ def main():
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.equalizeHist(gray)
             canvas = calibrate(gray, frame, sf, mn)
+
+
             cv2.putText(canvas, 'Smile and adjust the scale factor', (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
                         1, (0, 0, 0), 2, cv2.LINE_AA)
             cv2.putText(canvas, 'till there is only one smile', (50, 80),
@@ -153,7 +151,18 @@ def main():
             imgbytes = cv2.imencode(".png", canvas)[1].tobytes()
             window["-IMAGE-"].update(data=imgbytes)
 
-        elif not calibrateBool or player.is_playing:
+        elif videoPlaying:
+            event, values = window.read(timeout=20)
+            sf = values["-SCALE-"]/100
+            mn = int(values["-NEIGHB-"])
+            _, frame = cap.read()
+            frame = cv2.resize(frame, (700, 512))
+            frame = cv2.flip(frame, 1)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray = cv2.equalizeHist(gray)
+            detect(gray,frame,sf,mn)
+
+        elif not calibrateBool or videoLoaded:
             _, frame = cap.read()
             frame = cv2.resize(frame, (700, 512))
             frame = cv2.flip(frame, 1)
@@ -163,10 +172,12 @@ def main():
             imgbytes = cv2.imencode(".png", frame)[1].tobytes()
             window["-IMAGE-"].update(data=imgbytes)
         if event == 'play':
+            videoPlaying = True
             list_player.play()
         if event == 'pause':
             list_player.pause()
         if event == 'stop':
+            videoPlaying = False
             list_player.stop()
         if event == 'next':
             list_player.next()
@@ -177,30 +188,23 @@ def main():
             list_player.play()
         if event == 'load':
             if values['-VIDEO_LOCATION-'] and not 'Video URL' in values['-VIDEO_LOCATION-']:
+                videoLoaded = True
                 media_list.add_media(values['-VIDEO_LOCATION-'])
                 list_player.set_media_list(media_list)
                 window['-VIDEO_LOCATION-'].update('Video URL or Local Path:')  # only add a legit submit
 
         # update elapsed time if there is a video loaded and the player is playing
-
-
         if player.is_playing():
             window['-MESSAGE_AREA-'].update(
                 "{:02d}:{:02d} / {:02d}:{:02d}".format(*divmod(player.get_time() // 1000, 60),
                                                        *divmod(player.get_length() // 1000, 60)))
-            event, values = window.read(timeout=20)
-            ret, frame = cap.read()
-            out.write(frame)
-            framespassed += 1
-            print(framespassed)
-
-
         else:
             window['-MESSAGE_AREA-'].update('Load media to start' if media_list.count() == 0 else 'Ready to play media')
-    fps = framespassed/player.get_time()
-    out = cv2.VideoWriter('output.avi', fourcc, fps, (640, 480))
-    print(fps)
 
+
+
+    cap.release()
+    cv2.destroyAllWindows()
 
     smileChanges = np.where(np.roll(smileCounter, 1) != smileCounter)[0]
     lookAwayChanges = np.where(np.roll(lookAwayCounter, 1) != lookAwayCounter)[0]
@@ -233,8 +237,8 @@ def main():
             print("person looked away at: " + str(
                 lookAwayChanges[index + 1] / framerate) + " seconds, and lasted for: " + str(
                 (lookAwayChanges[index + 2] - lookAwayChanges[index + 1]) / framerate) + " seconds.")
-    cap.release()
-    out.release()
-    cv2.destroyAllWindows()
-main()
+    window.close()
+
+videoThread = threading.Thread(target=main())
+videoThread.start()
 
