@@ -9,6 +9,9 @@ import xlsxwriter
 from imutils import face_utils
 from scipy.spatial import distance as dist
 import time
+import PySimpleGUI as sg
+import vlc
+
 
 # loading the dlib face detector
 detector = dlib.get_frontal_face_detector()
