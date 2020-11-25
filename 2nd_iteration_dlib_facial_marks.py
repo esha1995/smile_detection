@@ -13,6 +13,8 @@ detector = dlib.get_frontal_face_detector()
 sp = dlib.shape_predictor('dlib files/shape_predictor_68_face_landmarks.dat')
 # getting the landmarks of the mouth
 (mStart, mEnd) = face_utils.FACIAL_LANDMARKS_IDXS["mouth"]
+(lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
+(rStart, rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
 # some variables
 counter = 0
 imageNumber = 0
@@ -55,6 +57,7 @@ def getMar(faces, gray):
         shape = sp(gray, faces)
         shape = face_utils.shape_to_np(shape)
         mouth = shape[mStart:mEnd]
+
         mar = distance(mouth)
     return mar
 
@@ -148,7 +151,6 @@ for i in range(numberOfTests):
                 secondCounter[i].append(float(cap.get(cv2.CAP_PROP_POS_MSEC)/1000))
                 faces = detector(rgb_frame, 1)
                 frame = detect(gray, frame, faces, i)
-                saveImage(frame, i)
             cv2.imshow('Video', frame)
             cv2.waitKey(1)
         else:
