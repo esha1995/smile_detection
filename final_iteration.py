@@ -105,8 +105,15 @@ def checker():
     global frame
     global smile
     global face
+    textis = ""
     while True:
-        time.sleep(1)
+
+        timeNow=time.time()
+        textOnImage(frame, textis, 50,50)
+        if smile:
+            textis = 'smile detected'
+        else:
+            textis = 'no smile detected'
         print(time.time()-timeNow)
 
 
@@ -120,8 +127,8 @@ while True:
         print("only numbers")
 
 cap = cv2.VideoCapture(webcam)
-checkerThread.start()
 
+checkerThread.start()
 while True:
     ret, frame = cap.read()
     counter += 1
