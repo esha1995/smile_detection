@@ -331,8 +331,6 @@ def on_draw():
 
 pyglet.app.run()
 
-
-
 # calculating every time there is a change in the lists
 smileChanges = np.where(np.roll(smileCounter, 1) != smileCounter)[0]
 lookAwayChanges = np.where(np.roll(faceCounter, 1) != faceCounter)[0]
@@ -356,22 +354,21 @@ for j in range(len(smileCounter)):
     worksheet.write('C' + str(j + 2), faceCounter[j])
 workbook.close()
 
-
-timestamp1Start=7
-timestamp1End=9
-count1=0
+timestamp1Start = 7
+timestamp1End = 9
+count1 = 0
 counter = 0
 
-for i in range(7,9):
+for i in range(7, 9):
     counter += 1
     count1 += smileCounter[i]
-count1 = count1/counter
+count1 = count1 / counter
 
 print(count1)
 if count1 == 0:
     print('no smile')
-
-
+elif count1 > 0.5:
+    print('smiled')
 
 plt.plot(secondCounter, smileCounter)
 plt.show()
