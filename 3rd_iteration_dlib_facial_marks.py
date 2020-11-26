@@ -194,8 +194,9 @@ def detect(gray, frame, faces):
     return frame
 
 
+
 # loading video clip and calculating frames pr. second of clip
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(2)
 # going through every frame of video, if one second has passed the detect function is called and an image is saved
 
 while True:
