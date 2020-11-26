@@ -12,6 +12,7 @@ from scipy.spatial import distance as dist
 import time
 import PySimpleGUI as sg
 import vlc
+import matplotlib.pyplot as plt
 
 # loading the dlib face detector
 detector = dlib.get_frontal_face_detector()
@@ -73,27 +74,32 @@ def distance(mouth):
     D = dist.euclidean(mouth[0], mouth[6])
     mar = L / D
     return mar
-#calculates distance from mouth to eye right side
+
+
+# calculates distance from mouth to eye right side
 def faceDistance(shape):
     faceD = dist.euclidean(shape[0], shape[16])
     return faceD
 
-#calculates distance from mouth to eye right side
+
+# calculates distance from mouth to eye right side
 def mouthEyeRDistance(shape):
     MToERight = dist.euclidean(shape[36], shape[48])
     return MToERight
 
-#calculates distance from mouth to eye left side
+
+# calculates distance from mouth to eye left side
 def mouthEyeLDistance(shape):
     MToELeft = dist.euclidean(shape[45], shape[54])
     return MToELeft
 
-#calculates distance from upper eyelid to lower eyelid right eye
+
+# calculates distance from upper eyelid to lower eyelid right eye
 def eyeRDistance(shape):
     #   eyeR1 = dist.euclidean(shape[38], shape[42])
     #  eyeR2 = dist.euclidean(shape[39], shape[41])
     # eyeR = (eyeR1+eyeR2)/2
-    #return eyeR
+    # return eyeR
     a1 = dist.euclidean(shape[36], shape[37])
     a2 = dist.euclidean(shape[41], shape[37])
     a3 = dist.euclidean(shape[36], shape[41])
@@ -122,7 +128,7 @@ def eyeRDistance(shape):
     return eyeAreaR
 
 
-#calculates distance from upper eyelid to lower eyelid left eye
+# calculates distance from upper eyelid to lower eyelid left eye
 def eyeLDistance(shape):
     global eyeAL22
 
@@ -132,8 +138,8 @@ def eyeLDistance(shape):
     a1 = dist.euclidean(shape[42], shape[43])
     a2 = dist.euclidean(shape[43], shape[47])
     a3 = dist.euclidean(shape[42], shape[47])
-    s1=(a1+a2+a3)/2
-    eyeAL1 = np.math.sqrt(s1*(s1-a1)*(s1-a2)*(s1-a3))
+    s1 = (a1 + a2 + a3) / 2
+    eyeAL1 = np.math.sqrt(s1 * (s1 - a1) * (s1 - a2) * (s1 - a3))
 
     b1 = dist.euclidean(shape[43], shape[44])
     b2 = dist.euclidean(shape[46], shape[47])
@@ -153,26 +159,21 @@ def eyeLDistance(shape):
     s4 = (d1 + d2 + d3) / 2
     eyeAL4 = np.math.sqrt(s4 * (s4 - d1) * (s4 - d2) * (s4 - d3))
 
-    eyeAreaL = eyeAL1+eyeAL2+eyeAL3+eyeAL4
+    eyeAreaL = eyeAL1 + eyeAL2 + eyeAL3 + eyeAL4
     return eyeAreaL
 
 
-
-
 # returns the mar-distance by using two arguments, which is the faces and the grayscale image
-def getMar(faces, gray):
-    mar = neutral
+def getValues(faces, gray):
     for (i, faces) in enumerate(faces):
         shape = sp(gray, faces)
         shape = face_utils.shape_to_np(shape)
-        mouth = shape[mStart:mEnd]
-        mar = distance(mouth)
         toRight = mouthEyeRDistance(shape)
         toLeft = mouthEyeLDistance(shape)
         eyeRight = eyeRDistance(shape)
         eyeLeft = eyeLDistance(shape)
         faceD = faceDistance(shape)
-    return mar, toRight, toLeft, eyeRight, eyeLeft, faceD
+    return toRight, toLeft, eyeRight, eyeLeft, faceD
 
 
 # returns the mar value of smile without teeth calculated
@@ -186,13 +187,15 @@ def smileTeeth(neutral):
     smileTeeth = neutral * 1.2
     return smileTeeth
 
-def eyeSmile(neutralL,neutralR):
+
+def eyeSmile(neutralL, neutralR):
     eyeSmile = (neutralL + neutralR) / 2
     eyeSmile = eyeSmile * 0.9
     return eyeSmile
 
+
 def eyeMouth(neutralL, neutralR):
-    eyeMouth = (neutralL + neutralR)/2
+    eyeMouth = (neutralL + neutralR) / 2
     eyeMouth = eyeMouth * 0.9
     return eyeMouth
 
@@ -207,22 +210,6 @@ def saveImage(frame, test):
     cv2.imwrite(np.os.path.join('detected_smiles', filename), saveImg)
 
 
-# function which detects smile based on calculated mar-values and appends answer to lists
-def detect(gray, frame, faces):
-    global smile
-    global face
-    if len(faces) < 1:
-        face = False
-    else:
-        face = True
-    mar = getMar(faces, gray)
-    if mar <= smileNoTeeth(neutral) or mar >= smileTeeth(neutral):
-        smile = True
-    else:
-        smile = False
-    return frame
-
-
 def timerCheck():
     global smile
     global face
@@ -230,28 +217,20 @@ def timerCheck():
     timeNow = time.time()
     stamp = 0.5
     while player.playing:
-        if stamp == 147:
+        if stamp == 10:
             player.pause()
             window.close()
         timeis = time.time() - timeNow
-        if stamp + 0.1 > timeis > stamp - 0.05:
-            print(timeis)
-            print(stamp)
+        if stamp + 0.1 > timeis > stamp - 0.1:
             secondCounter.append(stamp)
             stamp += 0.5
-            print(eyeAL22)
             if face:
-                print('face')
                 faceCounter.append(1)
                 if smile:
-                    print('smile')
                     smileCounter.append(1)
                 else:
-                    print('no smile')
                     smileCounter.append(0)
             else:
-                print('no face')
-                print('no smile')
                 smileCounter.append(0)
                 faceCounter.append(0)
 
@@ -278,15 +257,16 @@ def main():
             if len(faces) > 0:
                 try:
                     face = True
-                    mar, toRight, toLeft, eyeRight, eyeLeft, faceD = getMar(faces, gray)
-                    procentChange = faceD/faceDN
+                    toRight, toLeft, eyeRight, eyeLeft, faceD = getValues(faces, gray)
+                    procentChange = faceD / faceDN
                     eyeChangeL = eyeLeftN * procentChange
                     eyeChangeR = eyeRightN * procentChange
                     eyeChange = (eyeRight + eyeLeft) / 2
                     eyeMouthChangeL = toLeftN * procentChange
                     eyeMouthChangeR = toRightN * procentChange
                     eyeMouthChange = (toRight + toLeft) / 2
-                    if eyeChange < eyeSmile(eyeChangeL,eyeChangeR) and eyeMouthChange < eyeMouth(eyeMouthChangeL, eyeMouthChangeR):
+                    if eyeChange < eyeSmile(eyeChangeL, eyeChangeR) and eyeMouthChange < eyeMouth(eyeMouthChangeL,
+                                                                                                  eyeMouthChangeR):
                         smile = True
                     else:
                         smile = False
@@ -300,9 +280,8 @@ def main():
             break
     # realising when video is done and closing all windows
     cap.release()
-
-
     print('thread stopped')
+
 
 cap = cv2.VideoCapture(2)
 
@@ -318,16 +297,17 @@ while True:
     if ret:
         frame = resize(frame)
         cv2.imshow('Video', frame)
-        cv2.waitKey(1)
+
         if cv2.waitKey(1) & 0xFF == ord('q'):
             rgb_frame = frame[:, :, ::-1]
             gray = preproc(frame)
             faces = detector(rgb_frame, 1)
             if len(faces) > 0:
-                marN, toRightN, toLeftN, eyeRightN, eyeLeftN, faceDN = getMar(faces, gray)
+                toRightN, toLeftN, eyeRightN, eyeLeftN, faceDN = getValues(faces, gray)
             break
     else:
         break
+
 cap.release()
 cv2.destroyAllWindows()
 print(faceDN)
@@ -351,6 +331,8 @@ def on_draw():
 
 pyglet.app.run()
 
+
+
 # calculating every time there is a change in the lists
 smileChanges = np.where(np.roll(smileCounter, 1) != smileCounter)[0]
 lookAwayChanges = np.where(np.roll(faceCounter, 1) != faceCounter)[0]
@@ -373,3 +355,23 @@ for j in range(len(smileCounter)):
     worksheet.write('B' + str(j + 2), smileCounter[j])
     worksheet.write('C' + str(j + 2), faceCounter[j])
 workbook.close()
+
+
+timestamp1Start=7
+timestamp1End=9
+count1=0
+counter = 0
+
+for i in range(7,9):
+    counter += 1
+    count1 += smileCounter[i]
+count1 = count1/counter
+
+print(count1)
+if count1 == 0:
+    print('no smile')
+
+
+
+plt.plot(secondCounter, smileCounter)
+plt.show()
