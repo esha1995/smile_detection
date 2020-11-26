@@ -195,9 +195,9 @@ def detect(gray, frame, faces):
 
 
 
-# loading video clip and calculating frames pr. second of clip
+
 cap = cv2.VideoCapture(2)
-# going through every frame of video, if one second has passed the detect function is called and an image is saved
+
 
 while True:
     marN = 0
@@ -239,10 +239,7 @@ while True:
         frame = resize(frame)
         rgb_frame = frame[:, :, ::-1]
         gray = preproc(frame)
-        #if counter == 10:
-            #counter = 0
         faces = detector(rgb_frame, 1)
-        #frame = detect(gray, frame, faces)
         if len(faces) > 0:
             mar, toRight, toLeft, eyeRight, eyeLeft, faceD = getMar(faces, gray)
             procentChange = faceD/faceDN
@@ -256,11 +253,6 @@ while True:
                 textOnImage(frame, 'smile detected', 50,50)
             else:
                 textOnImage(frame, 'no smile detected', 50,50)
-            #textOnImage(frame, str(procentChange), 50, 350)
-            #textOnImage(frame, str(toRight),50,50)
-            #textOnImage(frame, str(toLeft), 50,100)
-            #textOnImage(frame, str(eyeRight), 50, 150)
-            #textOnImage(frame, str(eyeLeft), 50, 200)
         cv2.imshow('Video', frame)
         cv2.waitKey(1)
     else:

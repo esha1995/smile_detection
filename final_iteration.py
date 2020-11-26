@@ -7,6 +7,7 @@ import imutils
 import numpy as np
 import xlsxwriter
 from imutils import face_utils
+from pyglet.app import event_loop
 from scipy.spatial import distance as dist
 import time
 import PySimpleGUI as sg
@@ -31,12 +32,14 @@ player = pyglet.media.Player()
 source = pyglet.media.StreamingSource()
 MediaLoad = pyglet.media.load('klovn.mp4')
 
+eyeAL22 = 0
+
+workbook = xlsxwriter.Workbook('xml files/finaliteratio.xlsx')
+worksheet = workbook.add_worksheet()
+
 smileCounter = list()
 faceCounter = list()
 secondCounter = list()
-
-workbook = xlsxwriter.Workbook('xml files/finaliteration')
-worksheet = workbook.add_worksheet()
 
 
 # resizes image with width of 600
@@ -70,6 +73,90 @@ def distance(mouth):
     D = dist.euclidean(mouth[0], mouth[6])
     mar = L / D
     return mar
+#calculates distance from mouth to eye right side
+def faceDistance(shape):
+    faceD = dist.euclidean(shape[0], shape[16])
+    return faceD
+
+#calculates distance from mouth to eye right side
+def mouthEyeRDistance(shape):
+    MToERight = dist.euclidean(shape[36], shape[48])
+    return MToERight
+
+#calculates distance from mouth to eye left side
+def mouthEyeLDistance(shape):
+    MToELeft = dist.euclidean(shape[45], shape[54])
+    return MToELeft
+
+#calculates distance from upper eyelid to lower eyelid right eye
+def eyeRDistance(shape):
+    #   eyeR1 = dist.euclidean(shape[38], shape[42])
+    #  eyeR2 = dist.euclidean(shape[39], shape[41])
+    # eyeR = (eyeR1+eyeR2)/2
+    #return eyeR
+    a1 = dist.euclidean(shape[36], shape[37])
+    a2 = dist.euclidean(shape[41], shape[37])
+    a3 = dist.euclidean(shape[36], shape[41])
+    s1 = (a1 + a2 + a3) / 2
+    eyeAR1 = np.math.sqrt(s1 * (s1 - a1) * (s1 - a2) * (s1 - a3))
+
+    b1 = dist.euclidean(shape[41], shape[38])
+    b2 = dist.euclidean(shape[38], shape[37])
+    b3 = dist.euclidean(shape[41], shape[37])
+    s2 = (b1 + b2 + b3) / 2
+    eyeAR2 = np.math.sqrt(s2 * (s2 - b1) * (s2 - b2) * (s2 - b3))
+
+    c1 = dist.euclidean(shape[41], shape[38])
+    c2 = dist.euclidean(shape[38], shape[40])
+    c3 = dist.euclidean(shape[40], shape[41])
+    s3 = (c1 + c2 + c3) / 2
+    eyeAR3 = np.math.sqrt(s3 * (s3 - c1) * (s3 - c2) * (s3 - c3))
+
+    d1 = dist.euclidean(shape[40], shape[39])
+    d2 = dist.euclidean(shape[38], shape[39])
+    d3 = dist.euclidean(shape[38], shape[40])
+    s4 = (d1 + d2 + d3) / 2
+    eyeAR4 = np.math.sqrt(s4 * (s4 - d1) * (s4 - d2) * (s4 - d3))
+
+    eyeAreaR = eyeAR1 + eyeAR2 + eyeAR3 + eyeAR4
+    return eyeAreaR
+
+
+#calculates distance from upper eyelid to lower eyelid left eye
+def eyeLDistance(shape):
+    global eyeAL22
+
+    #  eyeL1 = dist.euclidean(shape[44], shape[48])
+    #  eyeL2 = dist.euclidean(shape[45], shape[47])
+    #  eyeL = (eyeL1+eyeL2)/2
+    a1 = dist.euclidean(shape[42], shape[43])
+    a2 = dist.euclidean(shape[43], shape[47])
+    a3 = dist.euclidean(shape[42], shape[47])
+    s1=(a1+a2+a3)/2
+    eyeAL1 = np.math.sqrt(s1*(s1-a1)*(s1-a2)*(s1-a3))
+
+    b1 = dist.euclidean(shape[43], shape[44])
+    b2 = dist.euclidean(shape[46], shape[47])
+    b3 = dist.euclidean(shape[43], shape[47])
+    s2 = (b1 + b2 + b3) / 2
+    eyeAL2 = np.math.sqrt(s2 * (s2 - b1) * (s2 - b2) * (s2 - b3))
+    eyeAL22 = eyeAL2
+    c1 = dist.euclidean(shape[44], shape[47])
+    c2 = dist.euclidean(shape[46], shape[47])
+    c3 = dist.euclidean(shape[46], shape[44])
+    s3 = (c1 + c2 + c3) / 2
+    eyeAL3 = np.math.sqrt(s3 * (s3 - c1) * (s3 - c2) * (s3 - c3))
+
+    d1 = dist.euclidean(shape[44], shape[45])
+    d2 = dist.euclidean(shape[46], shape[45])
+    d3 = dist.euclidean(shape[46], shape[44])
+    s4 = (d1 + d2 + d3) / 2
+    eyeAL4 = np.math.sqrt(s4 * (s4 - d1) * (s4 - d2) * (s4 - d3))
+
+    eyeAreaL = eyeAL1+eyeAL2+eyeAL3+eyeAL4
+    return eyeAreaL
+
+
 
 
 # returns the mar-distance by using two arguments, which is the faces and the grayscale image
@@ -80,7 +167,12 @@ def getMar(faces, gray):
         shape = face_utils.shape_to_np(shape)
         mouth = shape[mStart:mEnd]
         mar = distance(mouth)
-    return mar
+        toRight = mouthEyeRDistance(shape)
+        toLeft = mouthEyeLDistance(shape)
+        eyeRight = eyeRDistance(shape)
+        eyeLeft = eyeLDistance(shape)
+        faceD = faceDistance(shape)
+    return mar, toRight, toLeft, eyeRight, eyeLeft, faceD
 
 
 # returns the mar value of smile without teeth calculated
@@ -93,6 +185,16 @@ def smileNoTeeth(neutral):
 def smileTeeth(neutral):
     smileTeeth = neutral * 1.2
     return smileTeeth
+
+def eyeSmile(neutralL,neutralR):
+    eyeSmile = (neutralL + neutralR) / 2
+    eyeSmile = eyeSmile * 0.9
+    return eyeSmile
+
+def eyeMouth(neutralL, neutralR):
+    eyeMouth = (neutralL + neutralR)/2
+    eyeMouth = eyeMouth * 0.9
+    return eyeMouth
 
 
 # function that saves image with timestamp
@@ -121,45 +223,41 @@ def detect(gray, frame, faces):
     return frame
 
 
-def checker():
-    print('checker thread has started')
-    global frame
+def timerCheck():
     global smile
     global face
-    global player
-    global smileCounter
-    global faceCounter
-    global secondCounter
-    global workbook
-    global worksheet
+    global eyeAL22
     timeNow = time.time()
     stamp = 0.5
     while player.playing:
-        timeis = time.time() - timeNow
-        if stamp == 10:
+        if stamp == 147:
             player.pause()
+            window.close()
+        timeis = time.time() - timeNow
         if stamp + 0.1 > timeis > stamp - 0.05:
+            print(timeis)
+            print(stamp)
             secondCounter.append(stamp)
             stamp += 0.5
+            print(eyeAL22)
             if face:
                 print('face')
                 faceCounter.append(1)
                 if smile:
-                    smileCounter.append(1)
                     print('smile')
+                    smileCounter.append(1)
                 else:
-                    smileCounter.append(0)
                     print('no smile')
+                    smileCounter.append(0)
             else:
-                faceCounter.append(0)
                 print('no face')
-                smileCounter.append(0)
                 print('no smile')
+                smileCounter.append(0)
+                faceCounter.append(0)
 
-    print("thread 1 stopped")
+        time.sleep(0.000001)
+    print('thread stopped')
 
-
-checkerThread = threading.Thread(target=checker)
 
 def main():
     global counter
@@ -167,55 +265,111 @@ def main():
     global smile
     global face
     global frame
-    global videoThread
     global checkerThread
     global player
-
     cap = cv2.VideoCapture(2)
-
     while player.playing:
         ret, frame = cap.read()
-        counter += 1
         if ret:
             frame = resize(frame)
             rgb_frame = frame[:, :, ::-1]
             gray = preproc(frame)
-            if counter == 10:
-                counter = 0
-                faces = detector(rgb_frame, 1)
-                frame = detect(gray, frame, faces)
+            faces = detector(rgb_frame, 1)
+            if len(faces) > 0:
+                try:
+                    face = True
+                    mar, toRight, toLeft, eyeRight, eyeLeft, faceD = getMar(faces, gray)
+                    procentChange = faceD/faceDN
+                    eyeChangeL = eyeLeftN * procentChange
+                    eyeChangeR = eyeRightN * procentChange
+                    eyeChange = (eyeRight + eyeLeft) / 2
+                    eyeMouthChangeL = toLeftN * procentChange
+                    eyeMouthChangeR = toRightN * procentChange
+                    eyeMouthChange = (toRight + toLeft) / 2
+                    if eyeChange < eyeSmile(eyeChangeL,eyeChangeR) and eyeMouthChange < eyeMouth(eyeMouthChangeL, eyeMouthChangeR):
+                        smile = True
+                    else:
+                        smile = False
+                except:
+                    print('math error')
+            else:
+                face = False
             cv2.waitKey(1)
+            time.sleep(0.3)
         else:
             break
     # realising when video is done and closing all windows
     cap.release()
 
-detectorThread = threading.Thread(target=main)
+
+    print('thread stopped')
+
+cap = cv2.VideoCapture(2)
 
 while True:
-    try:
-        webcam = int(input("enter camera input: "))
+    marN = 0
+    toRightN = 0
+    toLeftN = 0
+    eyeRightN = 0
+    eyeLeftN = 0
+    faceDN = 0
+    ret, frame = cap.read()
+    counter += 1
+    if ret:
+        frame = resize(frame)
+        cv2.imshow('Video', frame)
+        cv2.waitKey(1)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            rgb_frame = frame[:, :, ::-1]
+            gray = preproc(frame)
+            faces = detector(rgb_frame, 1)
+            if len(faces) > 0:
+                marN, toRightN, toLeftN, eyeRightN, eyeLeftN, faceDN = getMar(faces, gray)
+            break
+    else:
         break
-    except:
-        print("only numbers")
+cap.release()
+cv2.destroyAllWindows()
+print(faceDN)
 
+detectorThread = threading.Thread(target=main)
+timerThread = threading.Thread(target=timerCheck)
 
 player.queue(MediaLoad)
 player.play()
-checkerThread.start()
+
 detectorThread.start()
+timerThread.start()
 
-@player.event
-def on_eos():
-
-    print('video end')
 
 @window.event
 def on_draw():
     window.clear()
     if player.source and player.source.video_format:
-        player.get_texture().blit(0, 0)
+        player.get_texture().blit(50, 50)
 
 
 pyglet.app.run()
 
+# calculating every time there is a change in the lists
+smileChanges = np.where(np.roll(smileCounter, 1) != smileCounter)[0]
+lookAwayChanges = np.where(np.roll(faceCounter, 1) != faceCounter)[0]
+
+# calculating number of smiles (which should bed half the times a change has occured)
+howManySmiles = int(len(smileChanges) / 2)
+howManyLookAway = int(len(lookAwayChanges) / 2)
+
+# writing the values in the created worksheet
+worksheet.write('A1', 'Seconds: ')
+worksheet.write('B1', 'Smile:')
+worksheet.write('C1', 'Face:')
+worksheet.write('D1', 'smilecount: ')
+worksheet.write('D2', howManySmiles)
+worksheet.write('E1', 'lookawaycount: ')
+worksheet.write('E2', howManyLookAway)
+
+for j in range(len(smileCounter)):
+    worksheet.write('A' + str(j + 2), secondCounter[j])
+    worksheet.write('B' + str(j + 2), smileCounter[j])
+    worksheet.write('C' + str(j + 2), faceCounter[j])
+workbook.close()
