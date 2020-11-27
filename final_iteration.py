@@ -11,6 +11,10 @@ from imutils import face_utils
 from scipy.spatial import distance as dist
 import time
 import matplotlib.pyplot as plt
+from PyQt5.QtWidgets import QApplication, QFileDialog
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
+from PyQt5.QtMultimediaWidgets import QVideoWidget
+from PyQt5.QtCore import QUrl
 
 # loading the dlib face detector
 detector = dlib.get_frontal_face_detector()
@@ -158,15 +162,17 @@ def eyeMouth(neutralL, neutralR):
 
 
 def timerCheck():
+    print('timer has started')
     global smile
     global face
     global window
     timeNow = time.time()
     stamp = 0.5
-    while player.playing:
-        if stamp ==  30:
-            player.pause()
-            window.close()
+    while player.PlayingState:
+        print(stamp)
+        if stamp ==  10:
+            player.stop()
+            break
         timeis = time.time() - timeNow
         if stamp + 0.1 > timeis > stamp - 0.1:
             secondCounter.append(stamp)
@@ -181,16 +187,41 @@ def timerCheck():
                 smileCounter.append(0)
                 faceCounter.append(0)
         time.sleep(0.001)
+    # calculating every time there is a change in the lists
+    smileChanges = np.where(np.roll(smileCounter, 1) != smileCounter)[0]
+    lookAwayChanges = np.where(np.roll(faceCounter, 1) != faceCounter)[0]
 
+    # calculating number of smiles (which should bed half the times a change has occured)
+    howManySmiles = int(len(smileChanges) / 2)
+    howManyLookAway = int(len(lookAwayChanges) / 2)
+
+    # writing the values in the created worksheet
+    worksheet.write('A1', 'Seconds: ')
+    worksheet.write('B1', 'Smile:')
+    worksheet.write('C1', 'Face:')
+    worksheet.write('D1', 'smilecount: ')
+    worksheet.write('D2', howManySmiles)
+    worksheet.write('E1', 'lookawaycount: ')
+    worksheet.write('E2', howManyLookAway)
+
+    for j in range(len(smileCounter)):
+        worksheet.write('A' + str(j + 2), secondCounter[j])
+        worksheet.write('B' + str(j + 2), smileCounter[j])
+        worksheet.write('C' + str(j + 2), faceCounter[j])
+    workbook.close()
+
+    plt.plot(secondCounter, smileCounter)
+    plt.savefig('the plot.png')
 
 
 def detectorMethod():
+    print('webcam has started')
     global smile
     global face
     global frame
     global player
     cap = cv2.VideoCapture(webcam)
-    while player.playing:
+    while player.PlayingState:
         ret, frame = cap.read()
         if ret:
             frame = resize(frame)
@@ -253,55 +284,28 @@ if __name__ == "__main__":
                 break
         else:
             break
-
     cap.release()
     cv2.destroyAllWindows()
 
     detectorThread = threading.Thread(target=detectorMethod)
     timerThread = threading.Thread(target=timerCheck)
 
-    window = pyglet.window.Window()
-    player = pyglet.media.Player()
-    source = pyglet.media.StreamingSource()
-    MediaLoad = pyglet.media.load('klovn.mp4')
-    player.queue(MediaLoad)
-    player.play()
 
+    app = QApplication([])
+    player = QMediaPlayer()
+    wgt_video = QVideoWidget()  # Video display widget
+    wgt_video.show()
+    player.setVideoOutput(wgt_video)  # widget for video output
+    player.setMedia(QMediaContent(QUrl.fromLocalFile('klovn.mp4')))  # Select video file
+    player.play()
     detectorThread.start()
     timerThread.start()
+    app.exec_()
 
-    @window.event
-    def on_draw():
-        window.clear()
-        if player.source and player.source.video_format:
-            player.get_texture().blit(50, 50)
+    cap.release()
+    cv2.destroyAllWindows()
 
-    pyglet.app.run()
 
-    # calculating every time there is a change in the lists
-    smileChanges = np.where(np.roll(smileCounter, 1) != smileCounter)[0]
-    lookAwayChanges = np.where(np.roll(faceCounter, 1) != faceCounter)[0]
 
-    # calculating number of smiles (which should bed half the times a change has occured)
-    howManySmiles = int(len(smileChanges) / 2)
-    howManyLookAway = int(len(lookAwayChanges) / 2)
-
-    # writing the values in the created worksheet
-    worksheet.write('A1', 'Seconds: ')
-    worksheet.write('B1', 'Smile:')
-    worksheet.write('C1', 'Face:')
-    worksheet.write('D1', 'smilecount: ')
-    worksheet.write('D2', howManySmiles)
-    worksheet.write('E1', 'lookawaycount: ')
-    worksheet.write('E2', howManyLookAway)
-
-    for j in range(len(smileCounter)):
-        worksheet.write('A' + str(j + 2), secondCounter[j])
-        worksheet.write('B' + str(j + 2), smileCounter[j])
-        worksheet.write('C' + str(j + 2), faceCounter[j])
-    workbook.close()
-
-    plt.plot(secondCounter, smileCounter)
-    plt.savefig('the plot.png')
 
 
