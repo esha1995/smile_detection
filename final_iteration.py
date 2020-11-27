@@ -170,7 +170,7 @@ def timerCheck():
     stamp = 0.5
     while player.PlayingState:
         print(stamp)
-        if stamp ==  10:
+        if stamp ==  120:
             player.stop()
             break
         timeis = time.time() - timeNow
@@ -256,8 +256,14 @@ def detectorMethod():
     cv2.destroyAllWindows()
 
 
-
 if __name__ == "__main__":
+
+    app = QApplication(sys.argv)
+    player = QMediaPlayer()
+    wgt_video = QVideoWidget()  # Video display widget
+    wgt_video.show()
+    player.setVideoOutput(wgt_video)  # widget for video output
+    player.setMedia(QMediaContent(QFileDialog.getOpenFileUrl()[0]))  # Select video file
 
     while True:
         try:
@@ -265,16 +271,13 @@ if __name__ == "__main__":
             break
         except:
             print("only numbers")
-
     cap = cv2.VideoCapture(webcam)
-
     cv2.imshow('window', cv2.imread('images/neutral0.jpg'))
     while True:
         ret, frame = cap.read()
         counter += 1
         if ret:
             frame = resize(frame)
-            #cv2.imshow('Video', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 rgb_frame = frame[:, :, ::-1]
                 gray = preproc(frame)
@@ -284,28 +287,19 @@ if __name__ == "__main__":
                 break
         else:
             break
+
     cap.release()
     cv2.destroyAllWindows()
 
     detectorThread = threading.Thread(target=detectorMethod)
     timerThread = threading.Thread(target=timerCheck)
 
-
-    app = QApplication([])
-    player = QMediaPlayer()
-    wgt_video = QVideoWidget()  # Video display widget
-    wgt_video.show()
-    player.setVideoOutput(wgt_video)  # widget for video output
-    player.setMedia(QMediaContent(QUrl.fromLocalFile('klovn.mp4')))  # Select video file
     player.play()
+    wgt_video.showFullScreen()
+
     detectorThread.start()
     timerThread.start()
     app.exec_()
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-
 
 
 
