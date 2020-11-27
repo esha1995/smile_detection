@@ -66,7 +66,7 @@ def detect(frame, i, dets):
     return frame
 
 
-participant = 'participant6'
+participant = 'participant9'
 
 numberOfTests = 5
 
@@ -120,8 +120,18 @@ for i in range(numberOfTests):
     worksheet.write('E2', howManyLookAway)
 
     for j in range(len(smileCounter[i])):
-        worksheet.write('A' + str(j + 2), secondCounter[i][j])
+
         worksheet.write('B' + str(j + 2), smileCounter[i][j])
+
+
+    for j in range(len(secondCounter[i])):
+        worksheet.write('A' + str(j + 2), secondCounter[i][j])
+
+
+    for j in range(len(faceCounter[i])):
+
         worksheet.write('C' + str(j + 2), faceCounter[i][j])
+
+
     workbook.close()
 

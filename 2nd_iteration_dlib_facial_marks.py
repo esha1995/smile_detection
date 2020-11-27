@@ -103,7 +103,7 @@ def detect(gray, frame, faces, i):
 # number of tests
 numberOfTests = 5
 
-participant = 'participant6'
+participant = 'participant9'
 
 # lists
 smileCounter = list()
@@ -126,7 +126,7 @@ for i in range(numberOfTests):
     worksheet = workbook.add_worksheet()
 
     # loading picture of neutral face and calculating mar values
-    neutralIMG = cv2.imread('images/neutral5.png')
+    neutralIMG = cv2.imread('images/neutral9.png')
     neutralIMG = preproc(neutralIMG)
     neutral = getMar(detector(neutralIMG, 1), neutralIMG)
     print("neutral mar value: " + str(neutral) + ", mar value for smile with teeth:"

@@ -25,6 +25,7 @@ sp = dlib.shape_predictor('dlib files/shape_predictor_68_face_landmarks.dat')
 counter = 0
 smile = False
 face = False
+runIt = True
 frame = cv2.imread('images/neutral0.jpg')
 webcam = 0
 
@@ -166,15 +167,17 @@ def timerCheck():
     global smile
     global face
     global window
+    global runIt
     timeNow = time.time()
     stamp = 0.5
-    while player.PlayingState:
-        print(stamp)
-        if stamp ==  120:
+    while runIt:
+        if stamp ==  200:
+            runIt = False
             player.stop()
             break
         timeis = time.time() - timeNow
-        if stamp + 0.1 > timeis > stamp - 0.1:
+        if stamp + 0.15 > timeis > stamp - 0.15:
+            print(stamp)
             secondCounter.append(stamp)
             stamp += 0.5
             if face:
@@ -186,7 +189,7 @@ def timerCheck():
             else:
                 smileCounter.append(0)
                 faceCounter.append(0)
-        time.sleep(0.001)
+        time.sleep(0.00001)
     # calculating every time there is a change in the lists
     smileChanges = np.where(np.roll(smileCounter, 1) != smileCounter)[0]
     lookAwayChanges = np.where(np.roll(faceCounter, 1) != faceCounter)[0]
@@ -210,8 +213,6 @@ def timerCheck():
         worksheet.write('C' + str(j + 2), faceCounter[j])
     workbook.close()
 
-    plt.plot(secondCounter, smileCounter)
-    plt.savefig('the plot.png')
 
 
 def detectorMethod():
@@ -220,8 +221,9 @@ def detectorMethod():
     global face
     global frame
     global player
+    global runIt
     cap = cv2.VideoCapture(webcam)
-    while player.PlayingState:
+    while runIt:
         ret, frame = cap.read()
         if ret:
             frame = resize(frame)
