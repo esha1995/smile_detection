@@ -26,7 +26,7 @@ counter = 0
 smile = False
 face = False
 runIt = True
-frame = cv2.imread('images/neutral0.jpg')
+frame = cv2.imread('images/Smile detection intro.png')
 webcam = 0
 
 workbook = xlsxwriter.Workbook('xml files/finaliteratio.xlsx')
@@ -274,7 +274,7 @@ if __name__ == "__main__":
         except:
             print("only numbers")
     cap = cv2.VideoCapture(webcam)
-    cv2.imshow('window', cv2.imread('images/neutral0.jpg'))
+    cv2.imshow('window', cv2.imread('images/Smile detection intro3.png'))
     while True:
         ret, frame = cap.read()
         counter += 1
