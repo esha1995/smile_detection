@@ -1,6 +1,4 @@
-import copy
 import threading
-import pyglet
 import cv2
 import dlib
 import imutils
@@ -10,11 +8,9 @@ import sys
 from imutils import face_utils
 from scipy.spatial import distance as dist
 import time
-import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import QApplication, QFileDialog
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtCore import QUrl
 
 # loading the dlib face detector
 detector = dlib.get_frontal_face_detector()
@@ -22,14 +18,12 @@ detector = dlib.get_frontal_face_detector()
 sp = dlib.shape_predictor('dlib files/shape_predictor_68_face_landmarks.dat')
 # getting the landmarks of the mouth
 
-counter = 0
+webcam = 0
 smile = False
 face = False
 runIt = True
-frame = cv2.imread('images/Smile detection intro.png')
-webcam = 0
 
-workbook = xlsxwriter.Workbook('xml files/finaliteratio.xlsx')
+workbook = xlsxwriter.Workbook('xml files/finaliteration.xlsx')
 worksheet = workbook.add_worksheet()
 
 smileCounter = list()
@@ -166,20 +160,20 @@ def timerCheck():
     print('timer has started')
     global smile
     global face
-    global window
     global runIt
     timeNow = time.time()
-    stamp = 0.5
+    stamp = 0.25
     while runIt:
-        if stamp ==  200:
+        if stamp == 20:
             runIt = False
             player.stop()
             break
         timeis = time.time() - timeNow
-        if stamp + 0.15 > timeis > stamp - 0.15:
+        if stamp + 0.1 > timeis > stamp - 0.1:
+            print(timeis)
             print(stamp)
             secondCounter.append(stamp)
-            stamp += 0.5
+            stamp += 0.25
             if face:
                 faceCounter.append(1)
                 if smile:
@@ -190,6 +184,7 @@ def timerCheck():
                 smileCounter.append(0)
                 faceCounter.append(0)
         time.sleep(0.00001)
+
     # calculating every time there is a change in the lists
     smileChanges = np.where(np.roll(smileCounter, 1) != smileCounter)[0]
     lookAwayChanges = np.where(np.roll(faceCounter, 1) != faceCounter)[0]
@@ -212,7 +207,6 @@ def timerCheck():
         worksheet.write('B' + str(j + 2), smileCounter[j])
         worksheet.write('C' + str(j + 2), faceCounter[j])
     workbook.close()
-
 
 
 def detectorMethod():
@@ -242,7 +236,7 @@ def detectorMethod():
                     eyeMouthChangeR = toRightN * procentChange
                     eyeMouthChange = (toRight + toLeft) / 2
                     if eyeChange < eyeSmile(eyeChangeL, eyeChangeR) and eyeMouthChange < eyeMouth(eyeMouthChangeL,
-                                                                                              eyeMouthChangeR):
+                                                                                                  eyeMouthChangeR):
                         smile = True
                     else:
                         smile = False
@@ -250,16 +244,18 @@ def detectorMethod():
                     print('math error')
             else:
                 face = False
-            time.sleep(0.2)
+            time.sleep(0.1)
         else:
             break
+
     # realising when video is done and closing all windows
     cap.release()
     cv2.destroyAllWindows()
 
+detectorThread = threading.Thread(target=detectorMethod)
+timerThread = threading.Thread(target=timerCheck)
 
 if __name__ == "__main__":
-
     app = QApplication(sys.argv)
     player = QMediaPlayer()
     wgt_video = QVideoWidget()  # Video display widget
@@ -273,11 +269,12 @@ if __name__ == "__main__":
             break
         except:
             print("only numbers")
+
     cap = cv2.VideoCapture(webcam)
-    cv2.imshow('window', cv2.imread('images/Smile detection intro3.png'))
+
+    cv2.imshow('window', cv2.imread('images/Smile_detection_intro3.png'))
     while True:
         ret, frame = cap.read()
-        counter += 1
         if ret:
             frame = resize(frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -293,15 +290,10 @@ if __name__ == "__main__":
     cap.release()
     cv2.destroyAllWindows()
 
-    detectorThread = threading.Thread(target=detectorMethod)
-    timerThread = threading.Thread(target=timerCheck)
-
     player.play()
     wgt_video.showFullScreen()
 
     detectorThread.start()
     timerThread.start()
+
     app.exec_()
-
-
-
