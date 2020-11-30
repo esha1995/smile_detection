@@ -1,4 +1,5 @@
 import threading
+import copy
 import cv2
 import dlib
 import imutils
@@ -30,12 +31,15 @@ smileCounter = list()
 faceCounter = list()
 secondCounter = list()
 
+def saveImage(frame):
+    saveImg = copy.copy(frame)
+    filename = 'snapshot.jpg'
+    cv2.imwrite(np.os.path.join('images', filename), saveImg)
 
 # resizes image with width of 600
 def resize(frame):
     frame = imutils.resize(frame, width=600)
     return frame
-
 
 # returns histogram stretched grayscale image
 def preproc(frame):
@@ -45,24 +49,20 @@ def preproc(frame):
     gray = cv2.filter2D(gray, -1, kernel)
     return gray
 
-
 # calculates distance from mouth to eye right side
 def faceDistance(shape):
     faceD = dist.euclidean(shape[0], shape[16])
     return faceD
-
 
 # calculates distance from mouth to eye right side
 def mouthEyeRDistance(shape):
     MToERight = dist.euclidean(shape[36], shape[48])
     return MToERight
 
-
 # calculates distance from mouth to eye left side
 def mouthEyeLDistance(shape):
     MToELeft = dist.euclidean(shape[45], shape[54])
     return MToELeft
-
 
 # calculates distance from upper eyelid to lower eyelid right eye
 def eyeRDistance(shape):
@@ -97,7 +97,6 @@ def eyeRDistance(shape):
     eyeAreaR = eyeAR1 + eyeAR2 + eyeAR3 + eyeAR4
     return eyeAreaR
 
-
 # calculates distance from upper eyelid to lower eyelid left eye
 def eyeLDistance(shape):
     #  eyeL1 = dist.euclidean(shape[44], shape[48])
@@ -130,7 +129,6 @@ def eyeLDistance(shape):
     eyeAreaL = eyeAL1 + eyeAL2 + eyeAL3 + eyeAL4
     return eyeAreaL
 
-
 # returns the mar-distance by using two arguments, which is the faces and the grayscale image
 def getValues(faces, gray):
     for (i, faces) in enumerate(faces):
@@ -143,7 +141,6 @@ def getValues(faces, gray):
         faceD = faceDistance(shape)
     return toRight, toLeft, eyeRight, eyeLeft, faceD
 
-
 def eyeSmile(neutralL, neutralR):
     eyeSmile = (neutralL + neutralR) / 2
     eyeSmile = eyeSmile * 0.9
@@ -155,7 +152,6 @@ def eyeMouth(neutralL, neutralR):
     eyeMouth = eyeMouth * 0.9
     return eyeMouth
 
-
 def timerCheck():
     print('timer has started')
     global smile
@@ -164,7 +160,7 @@ def timerCheck():
     timeNow = time.time()
     stamp = 0.25
     while runIt:
-        if stamp == 20:
+        if stamp == 300:
             runIt = False
             player.stop()
             break
@@ -207,7 +203,6 @@ def timerCheck():
         worksheet.write('B' + str(j + 2), smileCounter[j])
         worksheet.write('C' + str(j + 2), faceCounter[j])
     workbook.close()
-
 
 def detectorMethod():
     print('webcam has started')
@@ -278,6 +273,7 @@ if __name__ == "__main__":
         if ret:
             frame = resize(frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
+                saveImage(frame)
                 rgb_frame = frame[:, :, ::-1]
                 gray = preproc(frame)
                 faces = detector(rgb_frame, 1)
