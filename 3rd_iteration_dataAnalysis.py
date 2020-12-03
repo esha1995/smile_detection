@@ -9,6 +9,7 @@ from itertools import islice
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
+# function which slices an array in to pieces and finds the mean
 def means_of_slices(iterable, slice_size):
     iterator = iter(iterable)
     while True:
@@ -18,37 +19,49 @@ def means_of_slices(iterable, slice_size):
         else:
             return
 
+# number of participants
 nrOfTests = 31
-test_results = []
+
+# an array to hold smiles
 smile = []
 
+# getting the seconds from the first testperson
+data = pd.read_excel('test_results/testperson 1/finaliteration.xlsx')
+time = data['Seconds: '].tolist()
+
+# a for loop going through all excel documents with smile data for each test person and saving this in a list.
+# This list is afterwards appended to the smile list. So, the smile becomes a list (for each participant) of lists (smile data matching the participant)
 for i in range(nrOfTests):
     data = pd.read_excel('test_results/testperson '+str(i + 1)+'/finaliteration.xlsx')
-    test_results.append(data)
     smile.append(data['Smile:'].tolist())
 
+# a list which can contain total amount of smiles for each participant.
 smileCount = []
-time = test_results[0]['Seconds: '].tolist()
+
+# a double for loop firstly going through all participants, and afterwards looking at each smile data for each participant
 
 for i in range(len(smile)):
     smileCount.append(0)
     for j in range(1, len(smile[i])):
+        # if a 1 is found, but it is surrounded by 0's it will also become a 0, thereby deleting all smiles under 0,25 seconds
         if(smile[i][j] == 1 and smile[i][j-1] == 0 and smile[i][j+1] == 0):
             smile[i][j] = 0
     for j in range(1, len(smile[i])):
         if(smile[i][j-1] == 0 and smile[i][j] == 1):
             smileCount[i] += 1
+
+# there are 1200 0's and 1's in each smile array for each participant, we want this to be 30 values instead
+# therefore we are getting the mean of 40 values and putting this in to 1 value.
 for i in range(len(smile)):
     smile[i] = list(means_of_slices(smile[i], 40))
 time = list(means_of_slices(time, 40))
 
-print(len(smile))
-
+# reading all the survey data from a .csv file .
 surveyData = pd.read_csv('survey.csv', names=['Alder', 'Kon', 'Hvordan vil du bedømme det klip du lige har set?','Har du set klippet før?', 'Har du set noget fra tv-serien før?'])
 
 surveyData = StandardScaler().fit_transform(surveyData)
 
-print(surveyData)
+# making a bar-plot with the smile-data from participant 1 (which is the first in the smile list, therefore smile[0])
 plt.bar(*(time,smile[0]), width=10.0, align='edge')
 plt.show()
 
