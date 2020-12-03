@@ -23,7 +23,7 @@ test_results = []
 smile = []
 
 for i in range(nrOfTests):
-    data = pd.read_excel('/Volumes/SSD/smile_detection/test_results/testperson ' + str(i + 1) + '/finaliteration.xlsx')
+    data = pd.read_excel('test_results/testperson '+str(i + 1)+'/finaliteration.xlsx')
     test_results.append(data)
     smile.append(data['Smile:'].tolist())
 
