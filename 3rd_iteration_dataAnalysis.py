@@ -9,6 +9,8 @@ from itertools import islice
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
+
+#Definition for inddeling af smil i 10 sek intervaller.
 def means_of_slices(iterable, slice_size):
     iterator = iter(iterable)
     while True:
@@ -18,18 +20,21 @@ def means_of_slices(iterable, slice_size):
         else:
             return
 
+
 nrOfTests = 31
 test_results = []
 smile = []
 
+#Læser smil excelværdierne for alle testpersoner og gemmer den i en liste der hedder smile.
 for i in range(nrOfTests):
     data = pd.read_excel('test_results/testperson '+str(i + 1)+'/finaliteration.xlsx')
     test_results.append(data)
-    smile.append(data['Smile:'].tolist())
+    smile.append(data['Smile:'].tolist()) #Refers to list in xlsx document with name "Smile: ", so that it only stores this category of values
 
 smileCount = []
-time = test_results[0]['Seconds: '].tolist()
+time = test_results[0]['Seconds: '].tolist() #Refers to list in xlsx document with name "Seconds: ", so that it only stores this category of values
 
+#Removes invalid smiles from the list.
 for i in range(len(smile)):
     smileCount.append(0)
     for j in range(1, len(smile[i])):
@@ -40,15 +45,21 @@ for i in range(len(smile)):
             smileCount[i] += 1
 for i in range(len(smile)):
     smile[i] = list(means_of_slices(smile[i], 40))
-time = list(means_of_slices(time, 40))
+time = list(means_of_slices(time, 40)) #40 bruges, da vi har hvert 1/4 af et sekund målt. Det vil til slut give 10 sek. inddelinger.
 
+#prints the amount of "smiles" lists it has stored?
 print(len(smile))
 
-surveyData = pd.read_csv('survey.csv', names=['Alder', 'Kon', 'Hvordan vil du bedømme det klip du lige har set?','Har du set klippet før?', 'Har du set noget fra tv-serien før?'])
+#Beginning of PCA data visualisation.
+surveyData = pd.read_csv('survey.csv', names=['Alder', 'Køn', 'Hvordan vil du bedømme det klip du lige har set?','Har du set klippet før?', 'Har du set noget fra tv-serien før?'])
 
+#omregnes så det kan bruges til PCA. Dette er scaling to unit variance.
 surveyData = StandardScaler().fit_transform(surveyData)
 
+#Printer den standardiserede matrice over spørgeskema værdierne.
 print(surveyData)
+
+# prints out the smiles for participant 0.
 plt.bar(*(time,smile[0]), width=10.0, align='edge')
 plt.show()
 
