@@ -51,6 +51,7 @@ def distance(mouth):
     return mar
 
 # returns the mar-distance by using two arguments, which is the faces and the grayscale image
+
 def getMar(faces, gray):
     mar = neutral
     for (i, faces) in enumerate(faces):
