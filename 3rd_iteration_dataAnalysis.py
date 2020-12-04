@@ -8,7 +8,8 @@ import pandas as pd
 from itertools import islice
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-
+from IPython.display import display
+import plotly.express as px
 
 #Definition for inddeling af smil i 10 sek intervaller.
 def means_of_slices(iterable, slice_size):
@@ -52,11 +53,37 @@ print(len(smile))
 
 
 #Beginning of PCA data visualisation.
-df = pd.read_csv('Nummereret.csv', names=['Age', 'Gender', 'Rating 1-5','Have you seen the clip before?', 'Have you seen anything from the tv-show before?'])
+"""""
+df = px.data.iris()
+features = ["sepal_width", "sepal_length", "petal_width", "petal_length"]
+
+fig = px.scatter_matrix(
+    df,
+    dimensions=features,
+    color="species"
+)
+
+
+fig.update_traces(diagonal_visible=False)
+fig.show()
+"""""
+
+df = px.data.NummereretArk1()
+X = df[['Age', 'Rating', 'Watched_clip', 'Watched_series']]
+
+pca = PCA(n_components=2)
+components = pca.fit_transform(X)
+
+fig = px.scatter(components, x=0, y=1, color=df['Gender'])
+fig.show()
+
+"""""
+#df = pd.read_csv('Nummereret.csv', names=['Age', 'Gender', 'Rating 1-5','Have you seen the clip before?', 'Have you seen anything from the tv-show before?'])
 
 df.head()
+display(df)
 
-#Opdel i to lister, en for target og en for features:
+#Opdel i to lister, en for target (som her hedder Gender) og en for features:
 features = ['Age', 'Rating 1-5','Have you seen the clip before?', 'Have you seen anything from the tv-show before?']
 x = df.loc[:, features].values
 
@@ -66,7 +93,6 @@ y = df.loc[:, ['Gender']].values
 x = StandardScaler().fit_transform(x)
 
 pd.DataFrame(data = x, columns = features).head()
-
 
 # Printer den standardiserede matrice over spørgeskema værdierne.
 print(x)
@@ -101,10 +127,10 @@ for target, color in zip(targets,colors):
 ax.legend(targets)
 ax.grid()
 
+#plt.tight_layout()
 plt.show()
 
 
-""""
 # prints out the smiles for participant 0.
 plt.bar(*(time,smile[10]), width=10.0, align='edge')
 plt.show()
@@ -212,4 +238,4 @@ axs[3].set_ylim(0,100)
 axs[3].set_xlabel('Duration of clip')
 plt.legend()
 plt.show()
-"""
+"""""
