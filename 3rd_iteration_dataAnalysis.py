@@ -50,20 +50,68 @@ time = list(means_of_slices(time, 40)) #40 bruges, da vi har hvert 1/4 af et sek
 #prints the amount of "smiles" lists it has stored?
 print(len(smile))
 
+
 #Beginning of PCA data visualisation.
-surveyData = pd.read_csv('survey.csv', names=['Alder', 'Køn', 'Hvordan vil du bedømme det klip du lige har set?','Har du set klippet før?', 'Har du set noget fra tv-serien før?'])
+df = pd.read_csv('Nummereret.csv', names=['Age', 'Gender', 'Rating 1-5','Have you seen the clip before?', 'Have you seen anything from the tv-show before?'])
+
+df.head()
+
+#Opdel i to lister, en for target og en for features:
+features = ['Age', 'Rating 1-5','Have you seen the clip before?', 'Have you seen anything from the tv-show before?']
+x = df.loc[:, features].values
+
+y = df.loc[:, ['Gender']].values
 
 #omregnes så det kan bruges til PCA. Dette er scaling to unit variance.
-surveyData = StandardScaler().fit_transform(surveyData)
+x = StandardScaler().fit_transform(x)
 
-#Printer den standardiserede matrice over spørgeskema værdierne.
-print(surveyData)
+pd.DataFrame(data = x, columns = features).head()
 
-# prints out the smiles for participant 0.
-plt.bar(*(time,smile[0]), width=10.0, align='edge')
+
+# Printer den standardiserede matrice over spørgeskema værdierne.
+print(x)
+print(y)
+
+
+
+#PCA!
+
+pca = PCA(n_components=2)
+principalComponents = pca.fit_transform(x)
+
+principalDf = pd.DataFrame(data = principalComponents, columns = ['principal component 1', 'principal component 2'])
+principalDf.head(5)
+df[['Gender']].head()
+
+finalDf = pd.concat([principalDf, df[['Gender']]], axis = 1)
+finalDf.head(5)
+
+fig = plt.figure(figsize = (8,8))
+ax = fig.add_subplot(1,1,1)
+ax.set_xlabel('Principal Component 1', fontsize = 15)
+ax.set_ylabel('Principal Component 2', fontsize = 15)
+ax.set_title('2 Component PCA', fontsize = 20)
+
+
+targets = ['1', '2']
+colors = ['r', 'b']
+for target, color in zip(targets,colors):
+    indicesToKeep = finalDf['Gender'] == target
+    ax.scatter(finalDf.loc[indicesToKeep, 'principal component 1'], finalDf.loc[indicesToKeep, 'principal component 2'], c = color, s = 50)
+ax.legend(targets)
+ax.grid()
+
 plt.show()
 
+
 """"
+# prints out the smiles for participant 0.
+plt.bar(*(time,smile[10]), width=10.0, align='edge')
+plt.show()
+
+
+#Plots of smiles based on rating. All participants with the same rating has 
+
 
 all = np.sum(smile,0)
 for i in range(len(all)):
