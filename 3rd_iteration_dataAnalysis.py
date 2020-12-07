@@ -54,7 +54,7 @@ print(len(smile))
 
 #Beginning of PCA data visualisation.
 """""
-df = px.data.iris()
+df = px.data.iris() //Loads iris data from a build in function
 features = ["sepal_width", "sepal_length", "petal_width", "petal_length"]
 
 fig = px.scatter_matrix(
@@ -66,7 +66,7 @@ fig = px.scatter_matrix(
 
 fig.update_traces(diagonal_visible=False)
 fig.show()
-"""""
+
 
 df = px.data.NummereretArk1()
 X = df[['Age', 'Rating', 'Watched_clip', 'Watched_series']]
@@ -76,12 +76,12 @@ components = pca.fit_transform(X)
 
 fig = px.scatter(components, x=0, y=1, color=df['Gender'])
 fig.show()
-
 """""
-#df = pd.read_csv('Nummereret.csv', names=['Age', 'Gender', 'Rating 1-5','Have you seen the clip before?', 'Have you seen anything from the tv-show before?'])
+
+df = pd.read_csv('Nummereret_man_woman.csv', names=['Age', 'Rating 1-5','Have you seen the clip before?', 'Have you seen anything from the tv-show before?', 'Gender'])
 
 df.head()
-display(df)
+# display(df)
 
 #Opdel i to lister, en for target (som her hedder Gender) og en for features:
 features = ['Age', 'Rating 1-5','Have you seen the clip before?', 'Have you seen anything from the tv-show before?']
@@ -92,12 +92,11 @@ y = df.loc[:, ['Gender']].values
 #omregnes så det kan bruges til PCA. Dette er scaling to unit variance.
 x = StandardScaler().fit_transform(x)
 
-pd.DataFrame(data = x, columns = features).head()
+pd.DataFrame(data=x, columns=features).head()
 
 # Printer den standardiserede matrice over spørgeskema værdierne.
 print(x)
 print(y)
-
 
 
 #PCA!
@@ -119,10 +118,10 @@ ax.set_ylabel('Principal Component 2', fontsize = 15)
 ax.set_title('2 Component PCA', fontsize = 20)
 
 
-targets = ['1', '2']
+targets = ['man', 'woman']
 colors = ['r', 'b']
-for target, color in zip(targets,colors):
-    indicesToKeep = finalDf['Gender'] == target
+for Gender, color in zip(targets,colors):
+    indicesToKeep = finalDf['Gender'] == Gender
     ax.scatter(finalDf.loc[indicesToKeep, 'principal component 1'], finalDf.loc[indicesToKeep, 'principal component 2'], c = color, s = 50)
 ax.legend(targets)
 ax.grid()
@@ -130,7 +129,7 @@ ax.grid()
 #plt.tight_layout()
 plt.show()
 
-
+"""""
 # prints out the smiles for participant 0.
 plt.bar(*(time,smile[10]), width=10.0, align='edge')
 plt.show()
