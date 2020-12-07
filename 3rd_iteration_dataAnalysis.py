@@ -33,6 +33,10 @@ for i in range(nrOfTests):
     test_results.append(data)
     smile.append(data['Smile:'].tolist()) #Refers to list in xlsx document with name "Smile: ", so that it only stores this category of values
 
+
+
+
+
 smileCount = []
 time = test_results[0]['Seconds: '].tolist() #Refers to list in xlsx document with name "Seconds: ", so that it only stores this category of values
 
@@ -48,6 +52,10 @@ for i in range(len(smile)):
 for i in range(len(smile)):
     smile[i] = list(means_of_slices(smile[i], 40))
 time = list(means_of_slices(time, 40)) #40 bruges, da vi har hvert 1/4 af et sekund målt. Det vil til slut give 10 sek. inddelinger.
+
+smile = np.array(smile)
+for i in range(len(smile)):
+    smile[i] = smile[i].flatten()
 
 workbook = xlsxwriter.Workbook('smiles.xlsx')
 worksheet = workbook.add_worksheet()
@@ -85,11 +93,11 @@ worksheet.write('AD1', '290-300')
 
 for i in range(len(smile)):
     for j in range(len(smile[i])):
-
+        worksheet.write('A'+str(i+2), '290-300')
 
 
 #prints the amount of "smiles" lists it has stored?
-print(len(smile))
+print(smile)
 
 
 #Beginning of PCA data visualisation.
@@ -119,7 +127,6 @@ fig.show()
 """""
 
 df = pd.read_csv('Nummereret_man_woman.csv', names=['Age', 'Rating 1-5','Have you seen the clip before?', 'Have you seen anything from the tv-show before?', 'Gender'])
-print(smile)
 print(df)
 df.head()
 display(df)
