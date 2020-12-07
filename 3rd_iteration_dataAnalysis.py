@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from IPython.display import display
 import plotly.express as px
+import xlsxwriter
 
 #Definition for inddeling af smil i 10 sek intervaller.
 def means_of_slices(iterable, slice_size):
@@ -48,6 +49,44 @@ for i in range(len(smile)):
     smile[i] = list(means_of_slices(smile[i], 40))
 time = list(means_of_slices(time, 40)) #40 bruges, da vi har hvert 1/4 af et sekund målt. Det vil til slut give 10 sek. inddelinger.
 
+workbook = xlsxwriter.Workbook('smiles.xlsx')
+worksheet = workbook.add_worksheet()
+
+worksheet.write('A1', '0-10')
+worksheet.write('B1', '10-20')
+worksheet.write('C1', '20-30')
+worksheet.write('D1', '30-40')
+worksheet.write('E1', '40-50')
+worksheet.write('F1', '50-60')
+worksheet.write('G1', '60-70')
+worksheet.write('H1', '70-80')
+worksheet.write('I1', '80-90')
+worksheet.write('J1', '90-100')
+worksheet.write('K1', '100-110')
+worksheet.write('L1', '110-120')
+worksheet.write('M1', '120-130')
+worksheet.write('N1', '130-140')
+worksheet.write('O1', '140-150')
+worksheet.write('P1', '150-160')
+worksheet.write('Q1', '160-170')
+worksheet.write('R1', '170-180')
+worksheet.write('S1', '180-190')
+worksheet.write('T1', '190-200')
+worksheet.write('U1', '210-220')
+worksheet.write('V1', '220-230')
+worksheet.write('W1', '230-240')
+worksheet.write('X1', '240-250')
+worksheet.write('Y1', '250-260')
+worksheet.write('Z1', '260-270')
+worksheet.write('AA1', '270-280')
+worksheet.write('AB1', '280-290')
+worksheet.write('AC1', '290-300')
+
+for i in range(len(smile)):
+    for j in range(len(smile[i])):
+
+
+
 #prints the amount of "smiles" lists it has stored?
 print(len(smile))
 
@@ -79,9 +118,10 @@ fig.show()
 """""
 
 df = pd.read_csv('Nummereret_man_woman.csv', names=['Age', 'Rating 1-5','Have you seen the clip before?', 'Have you seen anything from the tv-show before?', 'Gender'])
-
+print(smile)
+print(df)
 df.head()
-# display(df)
+display(df)
 
 #Opdel i to lister, en for target (som her hedder Gender) og en for features:
 features = ['Age', 'Rating 1-5','Have you seen the clip before?', 'Have you seen anything from the tv-show before?']
@@ -129,12 +169,12 @@ ax.grid()
 #plt.tight_layout()
 plt.show()
 
-"""""
+
 # prints out the smiles for participant 0.
-plt.bar(*(time,smile[10]), width=10.0, align='edge')
-plt.show()
+#plt.bar(*(time,smile[0]), width=10.0, align='edge')
+#plt.show()
 
-
+"""""
 #Plots of smiles based on rating. All participants with the same rating has 
 
 
